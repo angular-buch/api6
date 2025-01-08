@@ -68,6 +68,10 @@ function createBook($mysqli, $book) {
 
 $app = AppFactory::create();
 
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
+
 $app->add(function ($request, $handler) {
     $response = $handler->handle($request);
     return $response
