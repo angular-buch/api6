@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BookMonkey 6 API</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui"/>
+    <link rel="stylesheet" href="media/style.css" media="screen" />
+  </head>
+  <body class="markdown-body">
+    <h1>BookMonkey 6 API</h1>
+    <img src="media/monkey-thinking.svg" width="300" />
+    <ul>
+      <li><a href="/books">GET /books</a></li>
+      <li><a href="/books/9783864907791">GET /books/9783864907791</a></li>
+    </ul>
+    <hr />
+    <p>
+      <strong>You can reset the book list to its initial state.</strong
+      ><br />Execute this function if there are no more records or when the
+      contents are insufficient.
+    </p>
+    <button onclick="resetBookList()" id="reset">Reset book list</button>
+    <span id="resetOK">OK</span>
+    <hr />
+    <!--<strong>Explorable API documentation:&nbsp;<a href="/swagger-ui/">/swagger-ui/</a></strong>
+    <br />
+    <small>OpenAPI Specification:&nbsp;<a href="/swagger.json">/swagger.json</a></small>
+    <hr />-->
+    &copy;&nbsp;<a href="https://angular-buch.com">Angular-Buch Team</a>
+    <script>
+      function resetBookList() {
+        const resetOK = document.querySelector('#resetOK');
+        if (!confirm('Do you want to reset the book list?')) {
+          return;
+        }
+
+        fetch('/books', { method: 'DELETE' }).then(() => {
+          resetOK.style.visibility = 'visible';
+
+          setTimeout(() => (resetOK.style.visibility = 'hidden'), 1000);
+        });
+      }
+    </script>
+  </body>
+</html>

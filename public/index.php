@@ -3,88 +3,64 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 
-require __DIR__ . '/../vendor/autoload.php';
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+require __DIR__ . '/../vendor/autoload.php';
 
-$booksStoragePath = __DIR__ . '/storage/books.json';
-$booksStoragePathOriginal = __DIR__ . '/storage/books.original.json';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
 
-function getBooksJSON() {
-	global $booksStoragePath;
- 	return file_get_contents($booksStoragePath);
-}
+require_once('mysql.php');
+require_once('utils.php');
 
-function getBooks() {
-	return json_decode(getBooksJSON());
-}
+/*************************************************/
 
-function resetBooks() {
-	global $booksStoragePath;
-	global $booksStoragePathOriginal;
-	$originalBooks = file_get_contents($booksStoragePathOriginal);
-	file_put_contents($booksStoragePath, $originalBooks);
-}
-
-function findIndexByISBN($books, $isbn) {
-	return array_search($isbn, array_column(json_decode(json_encode($books),TRUE), 'isbn'));
-} 
-
-function getBookByISBN($isbn) {
-	if (!$isbn) { return NULL; }
-	$books = getBooks();
-	$index = findIndexByISBN($books, $isbn);
-
-	if ($index != FALSE) {
-	  return $books[$index];
+function toBook($data) {
+	$data['createdAt'] = stringToISO8601($data['createdAt']);
+	$data['authors'] = json_decode($data['authors']);
+	
+	if ($data['subtitle'] == NULL) {
+		unset($data['subtitle']);
 	}
+	
+	return $data;
 }
 
-function bookExists($isbn) {
-	if (!$isbn) { return FALSE; }
-	$index = findIndexByISBN(getBooks(), $isbn);
-	if ($index != FALSE) {
-		return TRUE;
+function isbnExists($mysqli, $isbn) {
+	$stmt = $mysqli->prepare('SELECT COUNT(*) as cnt FROM books WHERE isbn = ?');
+ 	$stmt->bind_param('s', $isbn);
+ 	$stmt->execute();
+	$result = $stmt->get_result()->fetch_array(MYSQLI_ASSOC);
+	return $result['cnt'] != 0;
+}
+
+function getBookByISBN($mysqli, $isbn) {
+	$stmt = $mysqli->prepare('SELECT isbn, title, subtitle, description, authors, imageUrl, createdAt FROM books WHERE isbn = ? LIMIT 1');
+	$stmt->bind_param('s', $isbn);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	
+	return $result->fetch_array(MYSQLI_ASSOC);
+}
+
+function throwHttpError($response, $statusCode, $errorText) {
+	if ($errorText) {
+		$response->getBody()->write(toJSON(['error' => $errorText]));
+		return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
 	} else {
-		return FALSE;
+		return $response->withStatus($statusCode);
 	}
 }
 
-function writeBooks($books) {
-	global $booksStoragePath;
-	file_put_contents($booksStoragePath, json_encode($books));
-}
 
-function replaceBook($book) {
-	$books = getBooks();
-	$index = findIndexByISBN($books, $book->isbn);
+function createBook($mysqli, $book) {
+	$authors = json_encode($book->authors);
 	
-	// when book does not exist, insert instead
-	if ($index == FALSE) {
-		addBook($book);
-		return;
-	}
-	
-	$books[$index] = $book;
-	writeBooks($books);
-}
-
-function addBook($book) {
-	$books = getBooks();
-	$books[] = $book;
-	writeBooks($books);
-}
-
-function deleteBook($isbn) {
-	$books = getBooks();
-	$index = findIndexByISBN($books, $isbn);
-	if ($index != FALSE) {
-		unset($books[$index]);
-		writeBooks($books);
-	}
+	$stmt = $mysqli->prepare('INSERT INTO books (isbn, title, subtitle, description, authors, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)');
+	$stmt->bind_param('sssssss', $book->isbn, $book->title, $book->subtitle, $book->description, $authors, $book->imageUrl, $book->createdAt);
+	return $stmt->execute();
 }
 
 
@@ -101,85 +77,222 @@ $app->add(function ($request, $handler) {
 });
 
 
-$app->delete('/books', function (Request $request, Response $response, $args) {
-	resetBooks();
+$app->get('/', function (Request $request, Response $response, $args) {
+	$indexPage = file_get_contents('indexpage.html');
+	$response->getBody()->write($indexPage);
 	return $response->withStatus(200);
 });
 
 
+/** RESET BOOK LIST */
+$app->delete('/books', function (Request $request, Response $response, $args) {
+	global $mysqli;
+	$defaultBooks = json_decode(file_get_contents('defaultbooks.json'));
+	
+	$stmt = $mysqli->prepare('DELETE FROM books');
+	$stmt->execute();	
+
+	foreach ($defaultBooks as $book) {
+		createBook($mysqli, $book);
+	}
+	
+	return $response->withStatus(200);
+});
+
+
+/** GET BOOK LIST */
 $app->get('/books', function (Request $request, Response $response, $args) {
-	$payload = getBooksJSON();
-	$response->getBody()->write($payload);
+	global $mysqli;
+	$stmt = $mysqli->prepare('SELECT isbn, title, subtitle, description, authors, imageUrl, createdAt FROM books ORDER BY createdAt DESC');
+	$stmt->execute();
+	$booksRaw = $stmt->get_result();
+		
+	$books = [];
+	while ($bookRaw = $booksRaw->fetch_array(MYSQLI_ASSOC)) {
+		$books[] = toBook($bookRaw);	
+	}
+	
+	$response->getBody()->write(toJSON($books));
 	return $response
           ->withHeader('Content-Type', 'application/json')
           ->withStatus(200);
 });
 
+
+/** GET SINGLE BOOK */
 $app->get('/books/{isbn}', function (Request $request, Response $response, $args) {
-	$book = getBookByISBN($args['isbn']);
+	global $mysqli;
+
+	$isbn = $args['isbn'];
+	$book = getBookByISBN($mysqli, $isbn);
+		
 	if (!$book) {
 		return $response->withStatus(404);
 	}
 	
-	$response->getBody()->write(json_encode($book));
+	$response->getBody()->write(toJSON(toBook($book)));
 	return $response
           ->withHeader('Content-Type', 'application/json')
           ->withStatus(200);
 });
 
+
+/** DELETE BOOK */
 $app->delete('/books/{isbn}', function (Request $request, Response $response, $args) {
-	$book = getBookByISBN($args['isbn']);
-	if (!$book) {
+	global $mysqli;
+	$isbn = $args['isbn'];
+	if (!isbnExists($mysqli, $isbn)) {
 		return $response->withStatus(404);
 	}
 	
-	deleteBook($book->isbn);
+	$stmt = $mysqli->prepare('DELETE FROM books WHERE isbn = ?');
+	$stmt->bind_param('s', $isbn);
+	$stmt->execute();
 	
-	$response->getBody()->write('{ delete: true }');
 	return $response
           ->withHeader('Content-Type', 'application/json')
           ->withStatus(204);
 });
 
 
+/** UPDATE BOOK */
 $app->put('/books/{isbn}', function (Request $request, Response $response, $args) {
+	global $mysqli;
 	$body = $request->getBody()->getContents();
 	$book = json_decode($body);
-	
-	
-	if (!$book) {
+	$isbn = $args['isbn'];
+
+	// check whether book exists
+	if (!isbnExists($mysqli, $isbn)) {
 		return $response->withStatus(404);
 	}
-	
-	// TODO check data
-	
-	$book->isbn = $args['isbn'];
-	replaceBook($book);	
-	
-	$bookFromList = getBookByISBN($book->isbn);
-	
-	$response->getBody()->write(json_encode($bookFromList));
-	return $response
-          ->withHeader('Content-Type', 'application/json')
-          ->withStatus(200);
-});
 
-$app->post('/books', function (Request $request, Response $response, $args) {
-	$body = $request->getBody()->getContents();
-	
-	// TODO check data
-	
-	$book = json_decode($body);
-	if (bookExists($book->isbn)) {
-	  return $response->withStatus(409); // conflict
+	// book validation
+	if ($book->isbn != $isbn) {
+		return throwHttpError($response, 400, 'ISBN must match ISBN from URL');
 	}
 	
+	if (!is_string($book->title)) {
+		return throwHttpError($response, 400, 'Title must be string');
+	}
 	
+	if (strlen($book->isbn) > 255) {
+		return throwHttpError($response, 400, 'Title has a maximum length of 255');
+	}
 	
-	addBook($book);
-	$bookFromList = getBookByISBN($book->isbn);
+	if ($book->subtitle AND !is_string($book->subtitle)) {
+		return throwHttpError($response, 400, 'Subtitle must be string');
+	}
 	
-	$response->getBody()->write(json_encode($bookFromList));
+	if (strlen($book->isbn) > 255) {
+		return throwHttpError($response, 400, 'Subtitle has a maximum length of 255');
+	}
+	
+	if (!is_string($book->description)) {
+		return throwHttpError($response, 400, 'Description must be string');
+	}
+	
+	if (!is_string($book->imageUrl)) {
+		return throwHttpError($response, 400, 'Image URL must be string');
+	}
+	
+	if (!is_string($book->createdAt)) {
+		return throwHttpError($response, 400, 'createdAt must be ISO8601 date string');
+	}
+	
+	if (strlen($book->subtitle) > 255) {
+		return throwHttpError($response, 400, 'Image URL has a maximum length of 255');
+	}
+	
+	if (!is_array($book->authors)) {
+		return throwHttpError($response, 400, 'Authors must be an array of strings');
+	}
+
+	
+	// update in DB
+	$authors = json_encode($book->authors);
+	$stmt = $mysqli->prepare('UPDATE books SET title = ?, subtitle = ?, description = ?, authors = ?, imageUrl = ?, createdAt = ? WHERE isbn = ?');
+	$stmt->bind_param('sssssss', $book->title, $book->subtitle, $book->description, $authors, $book->imageUrl, $book->createdAt, $isbn);
+	$stmt->execute();
+	
+	// return book from DB
+	$bookFromDB = getBookByISBN($mysqli, $isbn);
+	if (!$bookFromDB) {
+		return $response->withStatus(500);
+	}
+	
+	$response->getBody()->write(toJSON(toBook($bookFromDB)));
+	return $response
+          ->withHeader('Content-Type', 'application/json')
+          ->withStatus(201);
+});
+
+
+/** CREATE BOOK */
+$app->post('/books', function (Request $request, Response $response, $args) {
+	global $mysqli;
+	$body = $request->getBody()->getContents();
+	$book = json_decode($body);
+	
+	// book validation
+	if (!is_string($book->isbn)) {
+		return throwHttpError($response, 400, 'ISBN must be string');
+	}
+	
+	if (strlen($book->isbn) > 40) {
+		return throwHttpError($response, 400, 'ISBN has a maximum length of 40');
+	}
+	
+	if (!is_string($book->title)) {
+		return throwHttpError($response, 400, 'Title must be string');
+	}
+	
+	if (strlen($book->isbn) > 255) {
+		return throwHttpError($response, 400, 'Title has a maximum length of 255');
+	}
+	
+	if ($book->subtitle AND !is_string($book->subtitle)) {
+		return throwHttpError($response, 400, 'Subtitle must be string');
+	}
+	
+	if (strlen($book->isbn) > 255) {
+		return throwHttpError($response, 400, 'Subtitle has a maximum length of 255');
+	}
+	
+	if (!is_string($book->description)) {
+		return throwHttpError($response, 400, 'Description must be string');
+	}
+	
+	if (!is_string($book->imageUrl)) {
+		return throwHttpError($response, 400, 'Image URL must be string');
+	}
+	
+	if (strlen($book->subtitle) > 255) {
+		return throwHttpError($response, 400, 'Image URL has a maximum length of 255');
+	}
+	
+	if (!is_string($book->createdAt)) {
+		return throwHttpError($response, 400, 'createdAt must be ISO8601 date string');
+	}
+	
+	if (!is_array($book->authors)) {
+		return throwHttpError($response, 400, 'Authors must be an array of strings');
+	}
+	
+	if (isbnExists($mysqli, $book->isbn)) {
+		return throwHttpError($response, 409, 'ISBN already exists');
+	}
+
+	// create book in DB
+	createBook($mysqli, $book);
+	
+	// return book from DB
+	$bookFromDB = getBookByISBN($mysqli, $book->isbn);
+	if (!$bookFromDB) {
+		return $response->withStatus(500);
+	}
+	
+	$response->getBody()->write(toJSON(toBook($bookFromDB)));
 	return $response
           ->withHeader('Content-Type', 'application/json')
           ->withStatus(201);

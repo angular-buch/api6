@@ -1,3 +1,3 @@
 composer.phar
 /vendor/
-public/storage/books.json
+public/.env
