@@ -24,7 +24,7 @@
     "createdAt": "2019-06-14T12:00:00.000Z",
     "subtitle": "Grundlagen, fortgeschrittene Themen und Best Practices – mit NativeScript und NgRx",
     "description": "Die Autoren führen Sie mit einem anspruchsvollen Beispielprojekt durch die Welt von Angular. Lernen Sie Schritt für Schritt, wie Sie strukturierte und modulare Single-Page-Anwendungen entwickeln. Nach der erfolgreichen ersten Auflage wurde dieses Buch grundlegend aktualisiert und erweitert:\nDurchgängig aktualisiert auf Angular 7 und neuere Versionen, Redux mit Reactive Extensions for Angular (NgRx), Ausführliches Kapitel zu RxJS und Observables, Server-Side Rendering mit Angular Universal, HTTP-Interceptoren, Kompakter Schnelleinstieg in Angular mit Stackblitz.\n\nPraktisch: Der Programmcode zu jeder einzelnen Entwicklungsphase ist auf GitHub verfügbar. So können Sie alle Schritte gut nachvollziehen und auch Teile überspringen.",
-    "thumbnailUrl": "https://cdn.ng-buch.de/cover/angular2.jpg"
+    "imageUrl": "https://cdn.ng-buch.de/cover/angular2.jpg"
   },
   {
     "isbn": "9783864907791",
@@ -49,7 +49,7 @@
     "createdAt": "2017-03-13T12:00:00.000Z",
     "subtitle": "Dezentrale Versionsverwaltung im Team – Grundlagen und Workflows",
     "description": "Git ist eine der beliebtesten Versionsverwaltungen. Die Vielfalt an Kommandos, Optionen und Konfigurationen wirkt anfangs aber oft einschüchternd – obwohl die Grundkonzepte einfach sind und man schon mit wenigen davon effektiv arbeiten kann.",
-    "thumbnailUrl": "https://cdn.ng-buch.de/cover/git5.jpg"
+    "imageUrl": "https://cdn.ng-buch.de/cover/git5.jpg"
   },
   {
     "isbn": "9783960091417",
@@ -71,7 +71,7 @@
     "createdAt": "2020-10-26T12:00:00.000Z",
     "subtitle": "Eine Einführung in APIs mit GraphQL",
     "description": "API-Design mit GraphQL für Um- und Einsteiger. In Anwendungen, bei denen es auf komplexe aber dennoch schlanke Datenabfragen ankommt, spielt GraphQL seine Vorteile aus. Dominik Kress gibt Ihnen dafür das nötige Wissen rund um API-Design und die GraphQL-spezifischen Datenmodelle an die Hand.",
-    "thumbnailUrl": "https://cdn.ng-buch.de/cover/graphql.jpg"
+    "imageUrl": "https://cdn.ng-buch.de/cover/graphql.jpg"
   },
   {
     "isbn": "9783864905520",
