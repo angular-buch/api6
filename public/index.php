@@ -17,6 +17,8 @@ require_once('utils.php');
 
 /*************************************************/
 
+$bookSqlColumns = 'isbn, title, subtitle, description, authors, imageUrl, createdAt';
+
 function toBook($data) {
 	$data['createdAt'] = stringToISO8601($data['createdAt']);
 	$data['authors'] = json_decode($data['authors']);
@@ -37,7 +39,8 @@ function isbnExists($mysqli, $isbn) {
 }
 
 function getBookByISBN($mysqli, $isbn) {
-	$stmt = $mysqli->prepare('SELECT isbn, title, subtitle, description, authors, imageUrl, createdAt FROM books WHERE isbn = ? LIMIT 1');
+	global $bookSqlColumns;
+	$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books WHERE isbn = ? LIMIT 1');
 	$stmt->bind_param('s', $isbn);
 	$stmt->execute();
 	$result = $stmt->get_result();
@@ -61,6 +64,111 @@ function createBook($mysqli, $book) {
 	$stmt = $mysqli->prepare('INSERT INTO books (isbn, title, subtitle, description, authors, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)');
 	$stmt->bind_param('sssssss', $book->isbn, $book->title, $book->subtitle, $book->description, $authors, $book->imageUrl, $book->createdAt);
 	return $stmt->execute();
+}
+
+function validateBook($book) {
+	/** ISBN */
+	if (!property_exists($book, 'isbn') OR !$book->isbn) {
+		return 'ISBN must not be empty';
+	}
+
+	if (!is_string($book->isbn)) {
+		return 'ISBN must be a string';
+	}
+
+	if (strlen($book->isbn) < 10) {
+		return 'ISBN has a maximum length of 10';
+	}
+
+	if (strlen($book->isbn) > 20) {
+		return 'ISBN has a maximum length of 20';
+	}
+
+
+	/** TITLE */
+	if (!property_exists($book, 'title') OR !$book->title) {
+		return 'Title must not be empty';
+	}
+	
+	if (!is_string($book->title)) {
+		return 'Title must be a string';
+	}
+	
+	if (strlen($book->title) > 255) {
+		return 'Title has a maximum length of 255';
+	}
+
+
+	/** SUBTITLE */
+	if (property_exists($book, 'subtitle') AND $book->subtitle AND !is_string($book->subtitle)) {
+		return 'Subtitle must be a string';
+	}
+	
+	if (property_exists($book, 'subtitle') AND strlen($book->subtitle) > 255) {
+		return 'Subtitle has a maximum length of 255';
+	}
+	
+
+	/** DESCRIPTION */
+	if (!property_exists($book, 'description') OR !$book->description) {
+		return 'Description must not be empty';
+	}
+	
+	if (!is_string($book->description)) {
+		return 'Description must be a string';
+	}
+	
+	if (strlen($book->description) > 10000) {
+		return 'Description has a maximum length of 10000';
+	}
+
+
+	/** IMAGEURL */
+	if (!property_exists($book, 'imageUrl') OR !$book->imageUrl) {
+		return 'Image URL must not be empty';
+	}
+
+	if (!is_string($book->imageUrl)) {
+		return 'Image URL must be string';
+	}
+
+	if (strlen($book->imageUrl) > 255) {
+		return 'Image URL has a maximum length of 255';
+	}
+
+
+	/** CREATEDAT */
+	if (!property_exists($book, 'createdAt') OR !is_string($book->createdAt)) {
+		return 'createdAt must be ISO8601 date string';
+	}
+	
+	if (strlen($book->createdAt) > 255) {
+		return 'createdAt has a maximum length of 255';
+	}
+
+
+	/** AUTHORS */
+	if (!property_exists($book, 'authors') OR !is_array($book->authors)) {
+		return 'Authors must be an array';
+	}
+
+	if (count($book->authors) < 1) {
+		return 'Authors has a minimum length of 1';
+	}
+
+	if (count($book->authors) > 100) {
+		return 'Authors has a maximum length of 100';
+	}
+
+	foreach ($book->authors as $author) {
+		if (!is_string($author)) {
+			return 'Authors must be an array of strings';
+		}
+		
+		if (strlen($author) > 255) {
+			return 'Each author has a maximum length of 255';
+		}
+	}
 }
 
 
@@ -104,10 +212,23 @@ $app->delete('/books', function (Request $request, Response $response, $args) {
 });
 
 
-/** GET BOOK LIST */
+/** GET BOOK LIST / SEARCH */
 $app->get('/books', function (Request $request, Response $response, $args) {
 	global $mysqli;
-	$stmt = $mysqli->prepare('SELECT isbn, title, subtitle, description, authors, imageUrl, createdAt FROM books ORDER BY createdAt DESC');
+	global $bookSqlColumns;
+
+	$params = $request->getQueryParams();
+	$searchParam = array_key_exists('search', $params) ? $params['search'] : '';
+	
+	if ($searchParam) {
+		// SEARCH
+		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books WHERE LOWER(CONCAT_WS(isbn, title, description, subtitle, authors)) LIKE ? ORDER BY createdAt DESC');
+		$search = '%' . strtolower($searchParam) . '%';
+		$stmt->bind_param('s', $search);
+	} else {	
+		// FULL LIST
+		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books ORDER BY createdAt DESC');
+	}
 	$stmt->execute();
 	$booksRaw = $stmt->get_result();
 		
@@ -165,53 +286,21 @@ $app->put('/books/{isbn}', function (Request $request, Response $response, $args
 	$body = $request->getBody()->getContents();
 	$book = json_decode($body);
 	$isbn = $args['isbn'];
+	
+	$book->isbn = trim($book->isbn);
 
-	// check whether book exists
 	if (!isbnExists($mysqli, $isbn)) {
 		return $response->withStatus(404);
 	}
 
-	// book validation
 	if ($book->isbn != $isbn) {
 		return throwHttpError($response, 400, 'ISBN must match ISBN from URL');
 	}
-	
-	if (!is_string($book->title)) {
-		return throwHttpError($response, 400, 'Title must be string');
-	}
-	
-	if (strlen($book->isbn) > 255) {
-		return throwHttpError($response, 400, 'Title has a maximum length of 255');
-	}
-	
-	if ($book->subtitle AND !is_string($book->subtitle)) {
-		return throwHttpError($response, 400, 'Subtitle must be string');
-	}
-	
-	if (strlen($book->isbn) > 255) {
-		return throwHttpError($response, 400, 'Subtitle has a maximum length of 255');
-	}
-	
-	if (!is_string($book->description)) {
-		return throwHttpError($response, 400, 'Description must be string');
-	}
-	
-	if (!is_string($book->imageUrl)) {
-		return throwHttpError($response, 400, 'Image URL must be string');
-	}
-	
-	if (!is_string($book->createdAt)) {
-		return throwHttpError($response, 400, 'createdAt must be ISO8601 date string');
-	}
-	
-	if (strlen($book->subtitle) > 255) {
-		return throwHttpError($response, 400, 'Image URL has a maximum length of 255');
-	}
-	
-	if (!is_array($book->authors)) {
-		return throwHttpError($response, 400, 'Authors must be an array of strings');
-	}
 
+	$validationError = validateBook($book);
+	if ($validationError) {
+		return throwHttpError($response, 400, $validationError);
+	}
 	
 	// update in DB
 	$authors = json_encode($book->authors);
@@ -238,54 +327,16 @@ $app->post('/books', function (Request $request, Response $response, $args) {
 	$body = $request->getBody()->getContents();
 	$book = json_decode($body);
 	
-	// book validation
-	if (!is_string($book->isbn)) {
-		return throwHttpError($response, 400, 'ISBN must be string');
-	}
-	
-	if (strlen($book->isbn) > 40) {
-		return throwHttpError($response, 400, 'ISBN has a maximum length of 40');
-	}
-	
-	if (!is_string($book->title)) {
-		return throwHttpError($response, 400, 'Title must be string');
-	}
-	
-	if (strlen($book->isbn) > 255) {
-		return throwHttpError($response, 400, 'Title has a maximum length of 255');
-	}
-	
-	if ($book->subtitle AND !is_string($book->subtitle)) {
-		return throwHttpError($response, 400, 'Subtitle must be string');
-	}
-	
-	if (strlen($book->isbn) > 255) {
-		return throwHttpError($response, 400, 'Subtitle has a maximum length of 255');
-	}
-	
-	if (!is_string($book->description)) {
-		return throwHttpError($response, 400, 'Description must be string');
-	}
-	
-	if (!is_string($book->imageUrl)) {
-		return throwHttpError($response, 400, 'Image URL must be string');
-	}
-	
-	if (strlen($book->subtitle) > 255) {
-		return throwHttpError($response, 400, 'Image URL has a maximum length of 255');
-	}
-	
-	if (!is_string($book->createdAt)) {
-		return throwHttpError($response, 400, 'createdAt must be ISO8601 date string');
-	}
-	
-	if (!is_array($book->authors)) {
-		return throwHttpError($response, 400, 'Authors must be an array of strings');
-	}
-	
+	$book->isbn = trim($book->isbn);
+
 	if (isbnExists($mysqli, $book->isbn)) {
 		return throwHttpError($response, 409, 'ISBN already exists');
 	}
+	
+	$validationError = validateBook($book);
+	if ($validationError) {
+		return throwHttpError($response, 400, $validationError);
+	}	
 
 	// create book in DB
 	createBook($mysqli, $book);
