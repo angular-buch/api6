@@ -2,7 +2,7 @@
 use Psr\Http\Message\ResponseInterface as Response;
 
 function toJSON($data) {
-	return json_encode($data, JSON_PRETTY_PRINT);
+	return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 
