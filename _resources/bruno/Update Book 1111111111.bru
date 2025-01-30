@@ -1,0 +1,28 @@
+meta {
+  name: Update Book 1111111111
+  type: http
+  seq: 10
+}
+
+put {
+  url: https://api6.angular-buch.com/1111111111
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "isbn": "1111111111",
+      "title": "UPDATED Testbuch Bruno",
+      "subtitle": "UPDATED Angelegt mit Bruno",
+      "description": "UPDATED Dieses Buch wurde mit Bruno angelegt.",
+      "authors": [
+        "X Bruno",
+        "X Ferdinand",
+        "X Danny",
+        "X Johannes"
+      ],
+      "imageUrl": "https://angular-buch.com/assets/img/book-cover-v4.png",
+      "createdAt": "2025-01-10T12:00:00+0100"
+    }
+}

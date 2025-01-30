@@ -1,0 +1,28 @@
+meta {
+  name: Create Book 1111111111
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://api6.angular-buch.com/books
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "isbn": "1111111111",
+      "title": "Testbuch Bruno",
+      "subtitle": "Angelegt mit Bruno",
+      "description": "Dieses Buch wurde mit Bruno angelegt.",
+      "authors": [
+        "Bruno",
+        "Ferdinand",
+        "Danny",
+        "Johannes"
+      ],
+      "imageUrl": "https://angular-buch.com/assets/img/book-cover.png",
+      "createdAt": "2025-01-08T18:56:55+0100"
+    }
+}
