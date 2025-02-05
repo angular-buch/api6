@@ -13,7 +13,7 @@ function toBook($data) {
 }
 
 function isbnExists($mysqli, $isbn) {
-	$stmt = $mysqli->prepare('SELECT COUNT(*) as cnt FROM books WHERE isbn = ?');
+	$stmt = $mysqli->prepare('SELECT COUNT(*) as cnt FROM ' . MYSQL_BOOKS_TABLE . ' WHERE isbn = ?');
  	$stmt->bind_param('s', $isbn);
  	$stmt->execute();
 	$result = $stmt->get_result()->fetch_array(MYSQLI_ASSOC);
@@ -22,7 +22,7 @@ function isbnExists($mysqli, $isbn) {
 
 function getBookByISBN($mysqli, $isbn) {
 	global $bookSqlColumns;
-	$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books WHERE isbn = ? LIMIT 1');
+	$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM ' . MYSQL_BOOKS_TABLE . ' WHERE isbn = ? LIMIT 1');
 	$stmt->bind_param('s', $isbn);
 	$stmt->execute();
 	$result = $stmt->get_result();
@@ -34,7 +34,7 @@ function getBookByISBN($mysqli, $isbn) {
 function createBook($mysqli, $book) {
 	$authors = json_encode($book->authors);
 	
-	$stmt = $mysqli->prepare('INSERT INTO books (isbn, title, subtitle, description, authors, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)');
+	$stmt = $mysqli->prepare('INSERT INTO ' . MYSQL_BOOKS_TABLE . ' (isbn, title, subtitle, description, authors, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)');
 	$stmt->bind_param('sssssss', $book->isbn, $book->title, $book->subtitle, $book->description, $authors, $book->imageUrl, $book->createdAt);
 	return $stmt->execute();
 }
