@@ -8,6 +8,6 @@
   ],
   "presets": {
     "requestType": "http",
-    "requestUrl": "https://ngapi.frag-ferdi.de"
+    "requestUrl": "https://api6.angular-buch.com"
   }
 }
