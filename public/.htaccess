@@ -1,4 +1,7 @@
 RewriteEngine On
+# serve custom version of swagger-ui config while the rest comes from the `vendor` dir
+RewriteRule ^swagger-ui/swagger-initializer\.js$ swagger-initializer.js [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
