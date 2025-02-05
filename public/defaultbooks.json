@@ -1,5 +1,23 @@
 [
   {
+    "isbn": "1234511111111",
+    "title": "Tierisch gut kochen",
+    "authors": ["Mrs Chimp", "Mr Gorilla"],
+    "subtitle": "Rezepte von Affe bis Zebra",
+    "imageUrl": "https://cdn.ng-buch.de/kochen.png",
+    "description": "Immer lecker und gut.\n\nDu dachtest, nur Menschen könnten kochen? Falsch gedacht! In diesem Buch präsentieren wir die wildesten Rezepte direkt aus dem Tierreich – liebevoll gesammelt von den talentiertesten Köchen mit Fell, Federn und Flossen.\n\nErfahre, warum Affen auf Erdnussbutter-Pancakes schwören, wie Pinguine das perfekte Sushi zaubern und warum Giraffen am liebsten Hochstapler-Burger bauen. Von vegetarischen Koalafreuden bis hin zu Löwenstarken Grillrezepten – hier gibt’s für jeden Geschmack etwas!\n\nEin humorvolles Kochbuch für alle, die Spaß in der Küche haben, tierisch gute Gerichte lieben und sich nicht davor scheuen, beim Zubereiten auch mal den Herd mit einer Giraffe zu teilen. Achtung: Zebras bevorzugen Streifenmuster auf dem Teller!",
+    "createdAt": "2025-02-01T11:12:00.000Z"
+  },
+  {
+    "isbn": "6789022222222",
+    "title": "Backen mit Affen",
+    "subtitle": "Bananenbrot und mehr",
+    "authors": ["Orang Utan"],
+    "imageUrl": "https://cdn.ng-buch.de/backen.png",
+    "description": "Tolle Backtipps für Mensch und Tier\n\nHast du dich jemals gefragt, was passiert, wenn ein Affe einen Schneebesen in die Hand bekommt? Dieses Buch gibt die Antwort – und sie ist chaotischer (und köstlicher), als du denkst!\n\nIn diesem Buch lernst du nicht nur, wie du perfekte Bananenmuffins zauberst, sondern auch, warum Mehlbomben in der Küche eher suboptimal sind und wieso ein Affe niemals für den Hefeteig verantwortlich sein sollte. Von waghalsigen Waffel-Experimenten bis hin zu haarsträubenden Himbeertorten – hier bleibt kein Backblech sauber!\n\nEin Buch für alle, die gerne lachen, naschen und bereit sind, ihre Küche in ein wildes Abenteuer zu verwandeln. Perfekt für experimentierfreudige Bäcker und alle, die sich nicht davor scheuen, beim Backen auch mal an den Kronleuchter zu schwingen!",
+    "createdAt": "2025-01-20T11:12:00.000Z"
+  },
+  {
     "isbn": "9783864909467",
     "title": "Angular (4. Auflage)",
     "authors": [
