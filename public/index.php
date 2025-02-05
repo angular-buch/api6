@@ -3,9 +3,15 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+if ($_ENV['DEBUG'] == 'true') {
+	ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+	error_reporting(E_ALL);
+} else {
+	ini_set('display_errors', 0);
+	ini_set('display_startup_errors', 0);
+	error_reporting(0);
+}
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -155,7 +161,7 @@ $app->delete('/books', function (Request $request, Response $response, $args) {
 	global $mysqli;
 	$defaultBooks = json_decode(file_get_contents('defaultbooks.json'));
 	
-	$stmt = $mysqli->prepare('DELETE FROM books');
+	$stmt = $mysqli->prepare('DELETE FROM ' . MYSQL_BOOKS_TABLE);
 	$stmt->execute();	
 
 	foreach ($defaultBooks as $book) {
@@ -176,12 +182,12 @@ $app->get('/books', function (Request $request, Response $response, $args) {
 	
 	if ($searchParam) {
 		// SEARCH
-		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books WHERE LOWER(CONCAT_WS(isbn, title, description, subtitle, authors)) LIKE ? ORDER BY createdAt DESC');
+		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM ' . MYSQL_BOOKS_TABLE . ' WHERE LOWER(CONCAT_WS(isbn, title, description, subtitle, authors)) LIKE ? ORDER BY createdAt DESC');
 		$search = '%' . strtolower($searchParam) . '%';
 		$stmt->bind_param('s', $search);
 	} else {	
 		// FULL LIST
-		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM books ORDER BY createdAt DESC');
+		$stmt = $mysqli->prepare('SELECT ' . $bookSqlColumns . ' FROM ' . MYSQL_BOOKS_TABLE . ' ORDER BY createdAt DESC');
 	}
 	$stmt->execute();
 	$booksRaw = $stmt->get_result();
@@ -224,7 +230,7 @@ $app->delete('/books/{isbn}', function (Request $request, Response $response, $a
 		return $response->withStatus(404);
 	}
 	
-	$stmt = $mysqli->prepare('DELETE FROM books WHERE isbn = ?');
+	$stmt = $mysqli->prepare('DELETE FROM ' . MYSQL_BOOKS_TABLE . ' WHERE isbn = ?');
 	$stmt->bind_param('s', $isbn);
 	$stmt->execute();
 	
@@ -258,7 +264,7 @@ $app->put('/books/{isbn}', function (Request $request, Response $response, $args
 	
 	// update in DB
 	$authors = json_encode($book->authors);
-	$stmt = $mysqli->prepare('UPDATE books SET title = ?, subtitle = ?, description = ?, authors = ?, imageUrl = ?, createdAt = ? WHERE isbn = ?');
+	$stmt = $mysqli->prepare('UPDATE ' . MYSQL_BOOKS_TABLE . ' SET title = ?, subtitle = ?, description = ?, authors = ?, imageUrl = ?, createdAt = ? WHERE isbn = ?');
 	$stmt->bind_param('sssssss', $book->title, $book->subtitle, $book->description, $authors, $book->imageUrl, $book->createdAt, $isbn);
 	$stmt->execute();
 	
