@@ -34,6 +34,22 @@
                   "items": {
                     "$ref": "#/components/schemas/Book"
                   }
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "A list of books",
+                    "value": [
+                      {
+                        "isbn": "1234511111111",
+                        "title": "Tierisch gut kochen",
+                        "subtitle": "Rezepte von Affe bis Zebra",
+                        "authors": ["Mrs Chimp", "Mr Gorilla"],
+                        "imageUrl": "https://cdn.ng-buch.de/kochen.png",
+                        "description": "Immer lecker und gut.\n\nDu dachtest, nur Menschen könnten kochen? Falsch gedacht! In diesem Buch präsentieren wir die wildesten Rezepte direkt aus dem Tierreich – liebevoll gesammelt von den talentiertesten Köchen mit Fell, Federn und Flossen.\n\nErfahre, warum Affen auf Erdnussbutter-Pancakes schwören, wie Pinguine das perfekte Sushi zaubern und warum Giraffen am liebsten Hochstapler-Burger bauen. Von vegetarischen Koalafreuden bis hin zu Löwenstarken Grillrezepten – hier gibt’s für jeden Geschmack etwas!\n\nEin humorvolles Kochbuch für alle, die Spaß in der Küche haben, tierisch gute Gerichte lieben und sich nicht davor scheuen, beim Zubereiten auch mal den Herd mit einer Giraffe zu teilen. Achtung: Zebras bevorzugen Streifenmuster auf dem Teller!",
+                        "createdAt": "2025-02-01T11:12:00.000Z"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -114,6 +130,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Book"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "An example book",
+                    "value": {
+                      "isbn": "1234511111111",
+                      "title": "Tierisch gut kochen",
+                      "subtitle": "Rezepte von Affe bis Zebra",
+                      "authors": ["Mrs Chimp", "Mr Gorilla"],
+                      "imageUrl": "https://cdn.ng-buch.de/kochen.png",
+                      "description": "Immer lecker und gut.\n\nDu dachtest, nur Menschen könnten kochen? Falsch gedacht! In diesem Buch präsentieren wir die wildesten Rezepte direkt aus dem Tierreich – liebevoll gesammelt von den talentiertesten Köchen mit Fell, Federn und Flossen.\n\nErfahre, warum Affen auf Erdnussbutter-Pancakes schwören, wie Pinguine das perfekte Sushi zaubern und warum Giraffen am liebsten Hochstapler-Burger bauen. Von vegetarischen Koalafreuden bis hin zu Löwenstarken Grillrezepten – hier gibt’s für jeden Geschmack etwas!\n\nEin humorvolles Kochbuch für alle, die Spaß in der Küche haben, tierisch gute Gerichte lieben und sich nicht davor scheuen, beim Zubereiten auch mal den Herd mit einer Giraffe zu teilen. Achtung: Zebras bevorzugen Streifenmuster auf dem Teller!",
+                      "createdAt": "2025-02-01T11:12:00.000Z"
+                    }
+                  }
                 }
               }
             }
