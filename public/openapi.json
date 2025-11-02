@@ -24,11 +24,11 @@
         "parameters": [
           {
             "in": "query",
-            "name": "search",
+            "name": "filter",
             "schema": {
               "type": "string"
             },
-            "description": "Search term"
+            "description": "Search term to filter books by"
           }
         ],
         "responses": {
