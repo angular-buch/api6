@@ -1,6 +1,6 @@
-# BookMonkey API 6
+# BookManager API 6
 
-This is the API for the BookMonkey application from the [German Angular Book](https://angular-buch.com). It is a RESTful API that provides CRUD operations for books.
+This is the API for the BookManager application from the [German Angular Book](https://angular-buch.com). It is a RESTful API that provides CRUD operations for books.
 A publicly available server is hosted at [api6.angular-buch.com](https://api6.angular-buch.com).
 
 ## Installation

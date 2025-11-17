@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "BookMonkey 6 API",
+    "title": "BookManager API v6",
     "version": "1.0.0",
     "description": "API for managing books"
   },

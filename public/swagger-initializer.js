@@ -1,4 +1,4 @@
-// BookMonkey API Swagger UI Init Config
+// BookManager API Swagger UI Init Config
 window.onload = function() {
   window.ui = SwaggerUIBundle({
     url: `${window.location.protocol}//${window.location.host}/openapi.json`,
