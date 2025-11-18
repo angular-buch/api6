@@ -8,6 +8,6 @@
   ],
   "presets": {
     "requestType": "http",
-    "requestUrl": "https://api6.angular-buch.com"
+    "requestUrl": "https://api1.angular-buch.com"
   }
 }

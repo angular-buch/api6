@@ -1,11 +1,11 @@
-# BookManager API 6
+# BookManager API v1
 
 This is the API for the BookManager application from the [German Angular Book](https://angular-buch.com). It is a RESTful API that provides CRUD operations for books.
-A publicly available server is hosted at [api6.angular-buch.com](https://api6.angular-buch.com).
+A publicly available server is hosted at [api1.angular-buch.com](https://api1.angular-buch.com).
 
 ## Installation
 
-> :warning: **You don't need to install this project to use the API. Please use the public server at [api6.angular-buch.com](https://api6.angular-buch.com).**
+> :warning: **You don't need to install this project to use the API. Please use the public server at [api1.angular-buch.com](https://api1.angular-buch.com).**
 
 The `public` folder must contain an `.env` file with MySQL credentials.
 Copy the `.env.example` to `.env`.
