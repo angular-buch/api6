@@ -1,5 +1,18 @@
 [
   {
+    "isbn": "9783988890641",
+    "title": "Angular (1. Auflage)",
+    "authors": [
+      "Ferdinand Malcher",
+      "Danny Koppenhagen",
+      "Johannes Hoppe"
+    ],
+    "subtitle": "Das Praxisbuch – von den Grundlagen bis zur professionellen Entwicklung mit Signals",
+    "description": "Das Buch legt den Fokus auf den Einstieg mit Angular und die modernsten APIs und Konzepte. Mit einem durchgängigen Beispielprojekt führen die Autoren dich durch die Welt von Angular. Du entwickelst und testest Schritt für Schritt eine professionelle, modulare und barrierefreie Single-Page-Anwendung und lernst Angular im praktischen Einsatz kennen.",
+    "imageUrl": "https://cdn.ng-buch.de/cover/angularmodern1.jpg",
+    "createdAt": "2026-05-15T12:00:00.000Z"
+  },
+  {
     "isbn": "1234511111111",
     "title": "Tierisch gut kochen",
     "authors": ["Mrs Chimp", "Mr Gorilla"],
